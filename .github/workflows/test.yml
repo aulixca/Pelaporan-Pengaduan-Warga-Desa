@@ -26,9 +26,52 @@ jobs:
       - run: npm run test:coverage
 
       - name: Generate coverage badge
-        uses: gabrielf/coverage-badge-action@v1
-        with:
-          summary: ./coverage/coverage-summary.json
-          badge: ./.github/badges/coverage.svg
-          commit: true
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PCT=$(node -e "
+            const fs = require('fs');
+            if (!fs.existsSync('./coverage/coverage-summary.json')) {
+              console.log('0');
+              process.exit(0);
+            }
+            const d = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
+            console.log(d.total.lines.pct);
+          ")
+
+          COLOR=brightgreen
+          if [ "$(echo "$PCT < 80" | bc)" -eq 1 ]; then COLOR=yellow; fi
+          if [ "$(echo "$PCT < 50" | bc)" -eq 1 ]; then COLOR=red; fi
+
+          node -e "
+            const pct = '$PCT';
+            const colors = { brightgreen: '#4c1', yellow: '#dfb317', red: '#e05d44' };
+            const c = colors['$COLOR'] || '#4c1';
+            const svg = '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"110\" height=\"20\">' +
+              '<linearGradient id=\"a\" x2=\"0\" y2=\"100%\"><stop offset=\"0\" stop-color=\"#bbb\" stop-opacity=\".1\"/>' +
+              '<stop offset=\"1\" stop-opacity=\".1\"/></linearGradient>' +
+              '<rect width=\"110\" height=\"20\" fill=\"#555\"/>' +
+              '<rect x=\"55\" width=\"55\" height=\"20\" fill=\"' + c + '\"/>' +
+              '<rect width=\"110\" height=\"20\" fill=\"url(#a)\"/>' +
+              '<g fill=\"#fff\" font-family=\"DejaVu Sans,Verdana,Geneva,sans-serif\" font-size=\"11\">' +
+              '<text x=\"27.5\" y=\"15\" fill=\"#010101\" fill-opacity=\".3\">coverage</text>' +
+              '<text x=\"27.5\" y=\"14\">coverage</text>' +
+              '<text x=\"82.5\" y=\"15\" fill=\"#010101\" fill-opacity=\".3\">' + pct + '%</text>' +
+              '<text x=\"82.5\" y=\"14\">' + pct + '%</text>' +
+              '</g></svg>';
+            require('fs').mkdirSync('.github/badges', { recursive: true });
+            require('fs').writeFileSync('.github/badges/coverage.svg', svg);
+            console.log('Coverage: ' + pct + '% (' + '$COLOR' + ')');
+          "
+
+      - name: Commit badge
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/badges/coverage.svg
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update coverage badge to ${PCT}%"
+            git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+            git push
+          fi
