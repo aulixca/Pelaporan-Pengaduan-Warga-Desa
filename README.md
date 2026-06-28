@@ -1,5 +1,8 @@
 # Sistem Pelaporan Pengaduan Warga Desa
 
+![CI](https://github.com/aulixca/Pelaporan-Pengaduan-Warga-Desa/actions/workflows/test.yml/badge.svg)
+[![codecov](https://codecov.io/gh/aulixca/Pelaporan-Pengaduan-Warga-Desa/branch/main/graph/badge.svg)](https://codecov.io/gh/aulixca/Pelaporan-Pengaduan-Warga-Desa)
+
 Website pelaporan pengaduan warga berbasis web dengan dua peran (Admin & Warga).
 
 ## Fitur
