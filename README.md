@@ -52,3 +52,7 @@ backend/
 ├── db.php           # Koneksi database
 └── schema.sql       # Struktur database
 ```
+
+# Nama  : Fina Aulia Khusna
+# NIM   : 101230008
+# Kelas : TF23B
