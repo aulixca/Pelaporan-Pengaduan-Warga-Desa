@@ -53,6 +53,6 @@ backend/
 └── schema.sql       # Struktur database
 ```
 
-## Nama  : Fina Aulia Khusna
-## NIM   : 101230008
-## Kelas : TF23B
+### Nama  : Fina Aulia Khusna
+### NIM   : 101230008
+### Kelas : TF23B
